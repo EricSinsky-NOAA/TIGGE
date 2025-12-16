@@ -64,8 +64,8 @@ parameter parameters[] = {
    {
       "10_meter_u_velocity_sfc.lam.mogreps-mo-eua",
       -100,
-      5,
-      1,
+      10,
+      -10,
       100,
       {
          {"model", GRIB_TYPE_STRING, 0, "lam"},
@@ -145,7 +145,7 @@ parameter parameters[] = {
       "10_meter_v_velocity_sfc.lam.mogreps-mo-eua",
       -100,
       10,
-      1,
+      -10,
       100,
       {
          {"model", GRIB_TYPE_STRING, 0, "lam"},
@@ -192,7 +192,7 @@ parameter parameters[] = {
    {
       "convective_available_potential_energy_sfc.lam",
       0,
-      10,
+      100,
       0,
       17000,
       {
@@ -240,9 +240,9 @@ parameter parameters[] = {
    {
       "convective_inhibition_sfc.lam",
       -60000,
-      0,
+      1,
       -10,
-      5,
+      4000,
       {
          {"model", GRIB_TYPE_STRING, 0, "lam"},
 
@@ -357,10 +357,10 @@ parameter parameters[] = {
 
    {
       "geopotential_height_pl",
-      -810,
-      20000,
-      320,
-      22000,
+      -5000,
+      50000,
+      200,
+      60000,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -423,7 +423,7 @@ parameter parameters[] = {
       -0.001,
       0,
       1,
-      1,
+      1.11,
       {
          {"model", GRIB_TYPE_STRING, 0, "lam"},
          {"suiteName", GRIB_TYPE_STRING, 11, "hirlam-dmi-eu"},
@@ -448,10 +448,10 @@ parameter parameters[] = {
 
    {
       "mean_sea_level_pressure_sfc.glob",
-      91000,
+      87000,
       103000,
       99000,
-      107000,
+      109000,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
 
@@ -637,7 +637,7 @@ parameter parameters[] = {
    {
       "potential_temperature_pv",
       220,
-      265,
+      280,
       380,
       1200,
       {
@@ -672,9 +672,9 @@ parameter parameters[] = {
 
    {
       "skin_temperature_sfc",
-      180,
-      210,
-      320,
+      160,
+      300,
+      280,
       355,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -689,9 +689,9 @@ parameter parameters[] = {
 
    {
       "snow_depth_water_equivalent_sfc",
-      -4e-19,
       0,
-      12000,
+      0,
+      100,
       15000,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -706,10 +706,10 @@ parameter parameters[] = {
 
    {
       "snow_fall_water_equivalent_sfc",
-      -1e-9,
-      -1e-9,
-      3.5,
-      3.5,
+      -1.5e+6,
+       1.5e+6,
+      -1.5e+6,
+       1.5e+6,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -724,10 +724,10 @@ parameter parameters[] = {
 
    {
       "soil_moisture_sfc",
-      -1e-18,
       0,
-      450,
-      500,
+      30,
+      100,
+      1010,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 2},
@@ -748,7 +748,7 @@ parameter parameters[] = {
       "soil_temperature_sfc",
       200,
       230,
-      310,
+      300,
       350,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -768,10 +768,10 @@ parameter parameters[] = {
 
    {
       "specific_humidity_pl",
-      -1e-2,
-      1e-4,
-      0.0001,
-      0.050,
+      -1e-1,
+      1.e-2,
+      0,
+      1e-1,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -926,7 +926,7 @@ parameter parameters[] = {
 
    {
       "surface_air_dew_point_temperature_sfc.lam",
-      175,
+      110,
       290,
       270,
       350,
@@ -1013,10 +1013,10 @@ parameter parameters[] = {
 
    {
       "surface_air_maximum_temperature_sfc",
-      190,
-      230,
-      310,
-      330,
+      160,
+      255,
+      300,
+      380,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1031,10 +1031,10 @@ parameter parameters[] = {
 
    {
       "surface_air_minimum_temperature_sfc",
-      190,
-      230,
-      310,
-      320,
+      160,
+      260,
+      300,
+      330,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1051,9 +1051,9 @@ parameter parameters[] = {
    {
       "surface_pressure_sfc",
       48000,
-      50500,
-      103000,
-      110000,
+      80000,
+      101500,
+      115000,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1067,9 +1067,9 @@ parameter parameters[] = {
 
    {
       "temperature_pl",
-      185,
-      250,
-      230,
+      150,
+      275,
+      200,
       330,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -1085,8 +1085,8 @@ parameter parameters[] = {
    {
       "time_integrated_outgoing_long_wave_radiation_sfc",
       -1.5e+6,
-      -1.5e+6,
-      -300000,
+      -1.2e+6,
+      -410000,
       -300000,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -1102,10 +1102,10 @@ parameter parameters[] = {
 
    {
       "time_integrated_surface_latent_heat_flux_sfc",
-      -4e+6,
-      -4e+6,
-      700000,
-      700000,
+      -1e+8,
+       1e+8,
+      -1e+8,
+       1e+8,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1120,10 +1120,10 @@ parameter parameters[] = {
 
    {
       "time_integrated_surface_net_solar_radiation_sfc",
-      0,
-      0,
-      4e+6,
-      4e+6,
+      -1e+5,
+       1e+5,
+       1e+5,
+       8e+6,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1138,10 +1138,10 @@ parameter parameters[] = {
 
    {
       "time_integrated_surface_net_thermal_radiation_sfc",
-      -1.1e+6,
-      -1.1e+6,
-      700000,
-      700000,
+      -1e+8,
+       1e+8,
+      -1e+8,
+       1e+8,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1156,10 +1156,10 @@ parameter parameters[] = {
 
    {
       "time_integrated_surface_sensible_heat_flux_sfc",
-      -3e+6,
-      -3e+6,
-      1.5e+6,
-      1.5e+6,
+      -1e+8,
+       1e+8,
+      -1e+8,
+       1e+8,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1192,9 +1192,9 @@ parameter parameters[] = {
 
    {
       "total_column_water_sfc",
-      0.1,
-      0.21,
-      75,
+      -3.0,
+      2,
+      30,
       150,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -1355,10 +1355,10 @@ parameter parameters[] = {
 
    {
       "u_velocity_pl",
-      -120,
-      -20,
-      20,
-      120,
+      -250,
+      5,
+      1,
+      250,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1373,8 +1373,8 @@ parameter parameters[] = {
    {
       "u_velocity_pv",
       -120,
-      -30,
-      70,
+      -29,
+      50,
       120,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -1389,10 +1389,10 @@ parameter parameters[] = {
 
    {
       "v_velocity_pl",
-      -120,
-      -20,
-      20,
-      120,
+      -200,
+      -2,
+      2,
+      200,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
          {"discipline", GRIB_TYPE_LONG, 0},
@@ -1407,8 +1407,8 @@ parameter parameters[] = {
    {
       "v_velocity_pv",
       -120,
-      -50,
-      55,
+      -30,
+      30,
       120,
       {
          {"model", GRIB_TYPE_STRING, 0, "glob"},
@@ -1471,9 +1471,9 @@ parameter parameters[] = {
    {
       "maximum_wind_gust.lam",
       0,
-      10,
+      15,
       0,
-      100,
+      150,
       {
          {"model", GRIB_TYPE_STRING, 0, "lam"},
 
@@ -1500,9 +1500,9 @@ parameter parameters[] = {
    {
       "maximum_wind_gust.lam",
       0,
-      10,
+      15,
       0,
-      100,
+      150,
       {
          {"model", GRIB_TYPE_STRING, 0, "lam"},
 
@@ -1565,3 +1565,4 @@ parameter parameters[] = {
    },
 
 };
+
