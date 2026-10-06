@@ -200,17 +200,31 @@ print STDOUT "rtnCodes  REPORT -------------------------
  -5 Rules unreadable      : $#rtn5 \n\n";
 
 my @finalRtn = main::qcOutput2( $ymdh );
-if( $finalRtn[0] eq "OK" ) 
-	{
-	print STDOUT " Verif. Post process completed: $finalRtn[1]\n\n";
-	if( length( $finalRtn[2] ) > 0 ) 
-		{  print STDOUT "*** Non critical Errors Were Recorded\n\n$finalRtn[2]\n\nEND of errors\n\n";  }
-	}
-else
-	{
-	print STDOUT "### Verifier detected issues: [$#finalRtn] (@finalRtn) \n\n======= END of issues====\n\n\n";
-	}
+#if( $finalRtn[0] eq "OK" ) 
+#	{
+#	print STDOUT " Verif. Post process completed: $finalRtn[1]\n\n";
+#	if( length( $finalRtn[2] ) > 0 ) 
+#		{  print STDOUT "*** Critical Errors Were Recorded\n\n$finalRtn[2]\n\nEND of errors\n\n";  }
+#	}
+#else
+#	{
+#	print STDOUT "### Verifier detected issues: [$#finalRtn] (@finalRtn) \n\n======= END of issues====\n\n\n";
+#	}
 
+
+if ($finalRtn[0] eq "OK") {
+    print STDOUT " Verif. Post process completed: $finalRtn[1]\n\n";
+
+    if ( length($finalRtn[2]) > 0 ) {
+        my $err_text = "*** CRITICAL ERRORS DETECTED ***\n\n$finalRtn[2]\nEND of errors\n\n";
+        print STDOUT $err_text;
+        die $err_text;
+    }
+} else {
+    my $err_text = "### Verifier detected issues: [$#finalRtn] (@finalRtn) \n\n======= END of issues====\n\n\n";
+    print STDOUT $err_text;
+    die $err_text;
+}
 
 	# Cleanup
 opendir( DEL,$outputStash );
@@ -388,6 +402,14 @@ else
 
 my $subFinishTime = time;
 my $subTime = $subFinishTime - $subStartTime;
+
+# --- Terminate Task if fields are missing ---
+#if ( $#errorList > -1 ) {
+#    my $count_msg = "Counts [$#tarList / $#errorList] in $subTime sec.\n";
+#    print STDOUT $count_msg;  # parent sees it
+#    die $count_msg;
+#}
+# -------------------------
 
 return("OK","Counts [$#tarList / $#errorList] in $subTime sec.",join("\n",@errorList) );
 }
