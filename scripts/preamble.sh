@@ -109,8 +109,6 @@ postamble() {
 
 	# Announce the script has ended, then pass the error code up
 	echo "End ${script} at $(date -u) with error code ${rc:-0} (time elapsed: ${elapsed})"
-
-
 	exit ${rc}
 }
 
