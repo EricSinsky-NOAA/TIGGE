@@ -14,7 +14,7 @@ day=${time:0:8}
 cyc=${time:8:2}
 
 workflow_dir="$(dirname ${script_dir})/workflow"
-mail_recipients="Walter.Kolczynski@noaa.gov"
+mail_recipients="Eric.Sinsky@noaa.gov"
 
 mail -s "A TIGGE job for ${day}_${cyc} is dead" "${mail_recipients}" <<- EOF
 	A TIGGE job for ${day}_${cyc} has failed:
