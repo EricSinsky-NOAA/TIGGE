@@ -1,3 +1,4 @@
+prepend_path("PATH","/apps/slurm/default/bin")
 prepend_path("MODULEPATH", "/apps/spack/modules/linux-rocky9-x86_64/Core")
 
 load("intel-oneapi-compilers/2024.2.1")

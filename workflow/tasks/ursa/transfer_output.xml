@@ -6,7 +6,7 @@
 	<queue>&TRANSFER_QUEUE;</queue>
 	<partition>&TRANSFER_PART;</partition>
 	<nodes>1:ppn=1:tpp=1</nodes>
-	<memory>1000M</memory>
+	<memory>10000M</memory>
 
 	&ENV_VARS;
 	<command><cyclestr>../scripts/transfer_output.sh @Y@m@d@H</cyclestr></command>

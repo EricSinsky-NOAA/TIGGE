@@ -2,7 +2,7 @@
 <!DOCTYPE workflow
 [
 	<!ENTITY PSLOT "TIGGE_from_HPSS">
-	<!ENTITY CYCLE_THROTTLE "4">
+	<!ENTITY CYCLE_THROTTLE "2">
 	<!ENTITY TASK_THROTTLE "40">
 	<!ENTITY TIGGE_PTMP "/scratch4/NCEPDEV/global/role.glopara/TIGGE/tigge_tmp">
 	<!ENTITY GEFS_COM "&TIGGE_PTMP;/hpss">
@@ -33,7 +33,7 @@
 	
 	<!-- List as many different cycles definitions as needed -->
 	<!-- <cycledef group="tigge">202412090000 202412090000 06:00:00</cycledef> -->
-	<cycledef group="tigge">202501200000 202712310000 06:00:00</cycledef>
+	<cycledef group="tigge">202509030600 202712310000 06:00:00</cycledef>
 
 	&pull_from_hpss;
 	&link_input;

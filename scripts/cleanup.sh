@@ -24,4 +24,4 @@ done
 find "hpss/gefs.${PDY}" -type d -empty -delete || true
 
 # Delete logs older than 30 days
-find "logs/" -mtime +30 -delete
+#find "logs/" -mtime +30 -delete
