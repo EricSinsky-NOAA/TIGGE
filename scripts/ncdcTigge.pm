@@ -923,7 +923,12 @@ sub runCycle($;$) {
 
     # This is the header conversion portion that NCAR used to do.
     # it is a standalone process -- for now.
-    print STDOUT (`perl run_ncep_convert.pl $latestRun`);
+    my $output = `perl run_ncep_convert.pl $latestRun`;
+    print STDOUT $output;
+    if ($? != 0) {
+        die "CRITICAL: run_ncep_convert.pl failed! Stopping run_tigge.\n";
+    }
+
     print STDOUT (" $ENV{TIGGE_TOOLS}/bin/ncdcTigge $latestRun all
     Is currently running\n\n");
     chdir("$ENV{TIGGE_TOOLS}") || print STDOUT "### $headline chdir($ENV{TIGGE_TOOLS}) failed!\n\n";
