@@ -112,7 +112,7 @@ postamble() {
 	exit ${rc}
 }
 
-# Returns the next available log file path (adds numeric suffix if needed)
+# Returns the next available log file path
 get_next_log_file() {
     local base_file="$1"  # full path to the base log file
     local next_file="$base_file"
