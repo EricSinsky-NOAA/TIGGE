@@ -9,7 +9,8 @@ use File::Path;
 
 require Exporter;
 
-our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([ab])(\.0p50\.)?f(\d{2,3})$);
+our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([abs])(\.(?:0p50|0p25)\.)?f(\d{2,3})$);
+# our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([ab])(\.0p50\.)?f(\d{2,3})$);
 
 our @ISA = qw(Exporter);
 
@@ -40,8 +41,23 @@ sub get_n_members($) {
     }
 }
 
-sub getQcNumPoints($) {
-    my ($cycle) = @_;
+#sub getQcNumPoints($) {
+#    my ($cycle) = @_;
+#    if ($cycle >= 2020092312) {
+#        return 259920;   # Number of datapoints contained in 0.5-deg Grid
+#    } else {
+#        return 65160;    # Number of datapoints contained in GENS-3 Grid
+#    }
+#}
+sub getQcNumPoints {
+    my ($cycle, $grib_type) = @_;
+
+    # 0.25-degree grid for 's' files (1440 x 721)
+    if (defined $grib_type && $grib_type eq 's') {
+        return 1038240;
+    }
+
+    # Historical/Current thresholds for 'a' and 'b' files
     if ($cycle >= 2020092312) {
         return 259920;   # Number of datapoints contained in 0.5-deg Grid
     } else {
@@ -61,6 +77,11 @@ $ncdcTigge::startTime = time;
 	# PACKAGE LEVEL "Public" (our scope) VARIABLES / CONSTANTS
 # our $ENS_MEMBERS    = 20;		# Maximum number of members
 our $FCT_HOURS      = 384;		# Maximum forecast hours
+our %FCT_HOURS = (                      # Maximum forecast hours
+    'a' => 384,
+    'b' => 384,
+    's' => 240,
+);
 our $FCT_INC        = 6;		# Default forecast hour increment
 
 	# For QC -- Record counts per file-type and date
@@ -303,12 +324,26 @@ undef my %RecsPerFctHr;
 
 # my @rtn2 = (`/bin/ls $ENV{home}`);
 
+# start
+my ($inFile, $cycle) = @_;
+
+$inFile =~ s/\/*\//\//g;
+my $inFileName = $inFile;
+$inFileName =~ s/^.*\///g;
+
+my $grib_type = 'a'; # fallback default
+    if ($inFileName =~ $gefs_filepattern) {
+        $grib_type = $3; # Captures 'a', 'b', or 's' from regex
+    }
+print STDOUT "grib_type is $grib_type\n";
+
         # Inport module level QC Settings
 my $CENTER 			= $ncdcTigge::qcCenterCode;
 my $REC_BYTE_MIN	= $ncdcTigge::qcRecByteMin;
 my $GEN_PROCESS_NUM	= $ncdcTigge::qcGensProcessIdNum;
 # my $NUM_POINTS 		= $ncdcTigge::qcNumPoints;
-my $MAX_FCT 		= $ncdcTigge::FCT_HOURS;
+#my $MAX_FCT 		= $ncdcTigge::FCT_HOURS;
+my $MAX_FCT = $ncdcTigge::FCT_HOURS{$grib_type} // 384;
 my $GRIB_LS = "${ncdcTigge::GRIB_API_BIN}/grib_ls";
 
 my $ArecCountAnl = $ncdcTigge::qcGensAnlARecCount;
@@ -316,11 +351,7 @@ my $ArecCountFct = $ncdcTigge::qcGensFctARecCount;
 my $BrecCountAnl = $ncdcTigge::qcGensAnlBRecCount;
 my $BrecCountFct = $ncdcTigge::qcGensFctBRecCount;
 
-# start
-my ($inFile, $cycle) = @_;
-$inFile =~ s/\/*\//\//g;
-my $inFileName = $inFile;
-$inFileName =~ s/^.*\///g;
+
 if( !(-e $inFile) )
     { return(1,"File related error","File \"$inFile\" does not exist!\n\n"); }
 if( !(-r $inFile) )
@@ -471,7 +502,7 @@ foreach my $line ( @rtn )
         "\n\tQC Warning:$numLine  Invalid forecast hour ($lineData[6])");
         }
     if( ($lineDataCount == $gribLsKeyCount) &&
-            ($lineData[7] != getQcNumPoints($cycle)) )
+            ($lineData[7] != getQcNumPoints($cycle, $grib_type)) )
         {
         push(@messages,
         "\n\tQC Warning:$numLine  Wrong #data-points ($lineData[7])");
@@ -550,9 +581,9 @@ return(0,"OK",@messages);
 sub qcGensCycle($;$;$)
 {
 my $headline = "$0:ncdcTigge::qcGensCycle : ";
-my $MEM_FILES = 65;
-if( $ncdcTigge::FCT_INC != 0 ) 
-	{ $MEM_FILES = int($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC) +1; }
+#my $MEM_FILES = 65;
+#if( $ncdcTigge::FCT_INC != 0 )
+#	{ $MEM_FILES = int($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC) +1; }
 
 my $inDir = shift(@_);
 my $cycle = shift(@_);
@@ -628,45 +659,100 @@ if ( $#dirTags > -1 )
 
 undef my %filesPerMember;
 undef my %fileFound;
+#foreach my $thisFile ( @dirGrb ) {
+#    my $thisPath = "${inDir}/$thisFile";
+#    if(  (-z $thisPath) ) { next; }
+#    if( !(-r $thisPath) ) { next; }
+#    my @fnParts = split(/[\.\-\_]/,$thisFile);
+#    my ( $inFileParseMem, $inFileParseCycle, $inFileParseType, $inFileParseFct ) =
+#         $thisFile =~ m/$gefs_filepattern/i;
+#    my $memberCode = "$inFileParseMem-$inFileParseType";
+#    $filesPerMember{$memberCode}++;
+#    my $hourCode = "$inFileParseMem-$inFileParseType-$inFileParseFct";
+#    $fileFound{$hourCode} = 1;
+#}
+
 foreach my $thisFile ( @dirGrb ) {
     my $thisPath = "${inDir}/$thisFile";
     if(  (-z $thisPath) ) { next; }
     if( !(-r $thisPath) ) { next; }
-    my @fnParts = split(/[\.\-\_]/,$thisFile);
-    my ( $inFileParseMem, $inFileParseCycle, $inFileParseType, $inFileParseFct ) = 
-         $thisFile =~ m/$gefs_filepattern/i;
-    my $memberCode = "$inFileParseMem-$inFileParseType";
-    $filesPerMember{$memberCode}++;
-    my $hourCode = "$inFileParseMem-$inFileParseType-$inFileParseFct";
-    $fileFound{$hourCode} = 1;
+
+    if ( $thisFile =~ $gefs_filepattern ) {
+        my $inFileParseMem  = sprintf("%02d", $1); # Group 1: Member (e.g., '00')
+        my $inFileParseType = $3;                  # Group 3: Type ('a', 'b', or 's')
+        my $inFileParseFct  = sprintf("%03d", $5); # Group 5: Forecast hour (e.g., '000')
+
+        my $memberCode = "$inFileParseMem-$inFileParseType";
+        $filesPerMember{$memberCode}++;
+
+        my $hourCode = "$inFileParseMem-$inFileParseType-$inFileParseFct";
+        $fileFound{$hourCode} = 1;
+    }
 }
 
+#for( my $m = 0; $m < get_n_members($cycle); $m++ ) {
+#    my $aKey = sprintf("%02d-%1s",$m,"a");
+#    my $bKey = sprintf("%02d-%1s",$m,"b");
+#	if( !defined($filesPerMember{$aKey}) )
+#		{ return("### $headline FAILED Member \# ${m}-a No files found!\n"); }
+#	if( !defined($filesPerMember{$bKey}) )
+#		{ return("### $headline FAILED Member \# ${m}-b No files found!\n"); }
+#    my $aCount = $filesPerMember{$aKey};
+#    my $bCount = $filesPerMember{$bKey};
+#    if( $aCount != $MEM_FILES) {
+#        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
+#            my $hourCode = sprintf("%02-a-%02",$m,$f);
+#            if( !$fileFound{$hourCode} ) {
+#              print STDERR " ! MISSING A FILE: $inDir Member ${m} / Fct $f \n";
+#            }
+#        }
+#        return("### $headline FAILED Member \# ${m}-a Does not contain $MEM_FILES files, ($aCount Found) \n");
+#    }
+#    if( $bCount != $MEM_FILES) {
+#        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
+#            my $hourCode = sprintf("%02-b-%02",$m,$f);
+#            if( !$fileFound{$hourCode} ) {
+#              print STDERR " ! MISSING B FILE: $inDir Member ${m} / Fct $f \n";
+#            }
+#        }
+#        return("### $headline FAILED Member \# ${m}-b Does not contain $MEM_FILES.\n files, ($bCount Found) \n");
+#    }
+#}
+
 for( my $m = 0; $m < get_n_members($cycle); $m++ ) {
-    my $aKey = sprintf("%02d-%1s",$m,"a");
-    my $bKey = sprintf("%02d-%1s",$m,"b");
-	if( !defined($filesPerMember{$aKey}) ) 
-		{ return("### $headline FAILED Member \# ${m}-a No files found!\n"); }
-	if( !defined($filesPerMember{$bKey}) )
-		{ return("### $headline FAILED Member \# ${m}-b No files found!\n"); }
-    my $aCount = $filesPerMember{$aKey};
-    my $bCount = $filesPerMember{$bKey};
-    if( $aCount != $MEM_FILES) {
-        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
-            my $hourCode = sprintf("%02-a-%02",$m,$f);
-            if( !$fileFound{$hourCode} ) {
-              print STDERR " ! MISSING A FILE: $inDir Member ${m} / Fct $f \n";
-            }
+    my $memStr = sprintf("%02d", $m); # Formats member as '00', '01', etc.
+
+    # Loop through each GRIB type explicitly
+    foreach my $type ('a', 'b', 's') {
+        my $key = "$memStr-$type";
+
+        # 1. Dynamically get MAX_FCT and expected MEM_FILES for this specific type
+        my $max_fct = $ncdcTigge::FCT_HOURS{$type} // $ncdcTigge::FCT_HOURS;
+        my $expected_files = 65; # fallback
+        if ( $ncdcTigge::FCT_INC != 0 ) {
+            $expected_files = int($max_fct / $ncdcTigge::FCT_INC) + 1;
         }
-        return("### $headline FAILED Member \# ${m}-a Does not contain $MEM_FILES files, ($aCount Found) \n");
-    }
-    if( $bCount != $MEM_FILES) {
-        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
-            my $hourCode = sprintf("%02-b-%02",$m,$f);
-            if( !$fileFound{$hourCode} ) {
-              print STDERR " ! MISSING B FILE: $inDir Member ${m} / Fct $f \n";
-            }
+
+        # 2. Did we find ANY files for this member-type?
+        if( !defined($filesPerMember{$key}) ) {
+            return("### $headline FAILED Member \# ${memStr}-${type} No files found!\n");
         }
-        return("### $headline FAILED Member \# ${m}-b Does not contain $MEM_FILES.\n files, ($bCount Found) \n");
+
+        # 3. Did we find the EXACT number of expected files?
+        my $count = $filesPerMember{$key};
+        if( $count != $expected_files ) {
+
+            # If not, loop through forecast hours to find exactly which ones are missing
+            for ( my $f = 0; $f <= $max_fct; $f += $ncdcTigge::FCT_INC ) {
+                my $fctStr = sprintf("%03d", $f); # Formats hour as '000', '006'
+                my $hourCode = "$memStr-$type-$fctStr"; # e.g. '00-a-000'
+
+                if( !$fileFound{$hourCode} ) {
+                    print STDERR " ! MISSING $type FILE: $inDir Member ${memStr} / Fct $fctStr \n";
+                }
+            }
+            return("### $headline FAILED Member \# ${memStr}-${type} Does not contain $expected_files files, ($count Found) \n");
+        }
     }
 }
     # Execute Slow, deep file scan on every file.
