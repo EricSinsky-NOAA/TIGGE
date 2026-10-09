@@ -112,14 +112,31 @@ switch  ( tigge_short_name )
 
 # Write all vars that survive beyond this point.
 #
-        default: 
+        default:
 # Feb.2018  Fix : on the level 50 there should be only geopotential but now there are all parameters
             if( typeOfFirstFixedSurface == 100 && scaledValueOfFirstFixedSurface == 5000 )
                 {
                 if( parameterCategory == 3 && parameterNumber == 5 )   { write; }
                 else { print "EXCEPTION  no 50 mb except HGT"; }
                 }
-            else { write; }
+            else {
+                # EXCLUSION CHECK: Target surface/single-level fields
+                if( typeOfFirstFixedSurface != 100 && typeOfFirstFixedSurface != 107 && typeOfFirstFixedSurface != 109 )
+                    {
+                    # Skip if it is past 240h OR if it is from a 0.50-degree grid (Ni = 720)
+                    if( endStep > 240 || Ni == 720 )
+                        {
+                        print "SKIPPING tigge_short_name=[tigge_short_name], grid=[Ni]x[Nj], endStep=[endStep]h, surfaceType=[typeOfFirstFixedSurface]";
+                        }
+                    else
+                        {
+                        write;
+                        }
+                    }
+                else
+                    {
+                    write;
+                    }
+                }
         }
-
 #print " END ";

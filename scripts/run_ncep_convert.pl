@@ -15,39 +15,43 @@ our $outputArchive  = "$ENV{TIGGE_OUTPUT}/archive/$ymdh";
 our $QCREPORT = "tigge-output-qc-report-for-${ymdh}.txt";
 our $QCREPORTpath = "$outputStash/$QCREPORT";
 
-our $FCT_HOURS = ${ncdcTigge::FCT_HOURS};
+our $FCT_HOURS_DEFAULT = ${ncdcTigge::FCT_HOURS};
+our %FCT_HOURS         = %ncdcTigge::FCT_HOURS;
 our $FCT_INC = ${ncdcTigge::FCT_INC};
 
+my $fct_ab = $FCT_HOURS{'a'} // 384; # 384 hours for pl, pt, pv (from a/b files)
+my $fct_s  = $FCT_HOURS{'s'} // 240; # 240 hours for surface sl (from s files)
+
 our %qcList = (
-	'pl' => {
-		'gh'     => { 'levels' => [50,200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'q'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		't'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'u'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'v'      => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-	} ,
-	'pt' => {
-		'pv'     => { 'levels' => [320], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-	} ,
-	'pv' => {
-		'u'      => { 'levels' => [2], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } , 
-		'v'      => { 'levels' => [2], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-	} ,
-	'sl' => {
-		'10u'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'10v'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'2d'     => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'2t'     => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'cape'   => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'cin'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'lsm'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'msl'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'orog'   => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. 0] } ,
-		'skt'    => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'sp'     => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'mn2t6'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 1 .. ($FCT_HOURS/$FCT_INC)] } ,
-		'mx2t6'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 1 .. ($FCT_HOURS/$FCT_INC)] } ,
-	}
+    'pl' => {
+        'gh'   => { 'levels' => [50,200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } ,
+        'q'    => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } ,
+        't'    => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } ,
+        'u'    => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } ,
+        'v'    => { 'levels' => [200,250,300,500,700,850,925,1000], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } ,
+    } ,
+    'pt' => {
+        'pv'   => { 'levels' => [320], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } ,
+    } ,
+    'pv' => {
+        'u'    => { 'levels' => [2], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } , 
+        'v'    => { 'levels' => [2], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_ab/$FCT_INC)] } ,
+    } ,
+    'sl' => {
+        '10u'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        '10v'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        '2d'   => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        '2t'   => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        'cape' => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        'cin'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        'lsm'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        'msl'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        'orog' => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. 0] } ,
+        'skt'  => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        'sp'   => { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 0 .. ($fct_s/$FCT_INC)] } ,
+        'mn2t6'=> { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 1 .. ($fct_s/$FCT_INC)] } ,
+        'mx2t6'=> { 'levels' => [0], 'hours' => [map { $FCT_INC * $_ } 1 .. ($fct_s/$FCT_INC)] } ,
+    }
 );
 
 print STDOUT "$0 @ARGV Run at ".scalar localtime(time)."\n\n";
@@ -149,7 +153,8 @@ cleanDevShm();	# make sure junk does not accumulate.
 print STDOUT "$0 proceeding to convert entire directory: [$inputDir] >> [$outputStash] ...\n\n";
 
 opendir(IN,$inputDir);
-my @files = sort grep(/${ncdcTigge::gefs_filepattern}/,readdir(IN));
+#my @files = sort grep(/${ncdcTigge::gefs_filepattern}/,readdir(IN));
+my @files = sort grep { $_ =~ $ncdcTigge::gefs_filepattern } readdir(IN);
 closedir(IN);
 
 # tigge_split bombs output into the current working directory
@@ -175,11 +180,15 @@ foreach my $tmpoutDel ( @existoutlist )
 
 undef my @rtnCodes;
 print STDOUT "\n -- Progress ---------------------------\n\n";
+
+my $total = scalar(@files);
+my $count = 0;
+
 foreach my $f ( @files ) 
 	{
+        $count++;
 	push(@rtnCodes, main::convertFile("$inputDir/$f") );
 	}
-
 
 my @rtn0 = grep(/0/,@rtnCodes  );
 my @rtn1 = grep(/-1/,@rtnCodes );
