@@ -16,14 +16,14 @@
 #include <math.h>
 
 // #define ENSEMBLE_MEMBERS 21
-#define FORECAST_HOURS 384
+#define FORECAST_HOURS 240
 #define NUMBER_OF_VARIABLES 13
 #define QUEUE_MAX 11
 
 
 FILE* aFile;
 FILE* bFile;
-
+FILE* sFile;
 	// when true, will allow missing input to pass by inserting a zero-ed data record in its place
 int ignoreMissingInput;
 
@@ -70,9 +70,9 @@ int writeGribToFile(grib_handle*, char*);
 int generateFileName(int, int, int, int, int, int, int, char*);
 void generateInputFilename(int, int, int, int, int, int, int, char*);
 int get_n_members(int, int, int, int);
-int get_n_points(int, int, int, int);
-int get_n_lat(int, int, int, int);
-int get_n_lon(int, int, int, int);
+int get_n_points(int, int, int, int, int);
+int get_n_lat(int, int, int, int, int);
+int get_n_lon(int, int, int, int, int);
 int get_gen_proc_id(int, int, int, int);
 void timadd (struct dt *, struct dt *);
 int qleap (int);

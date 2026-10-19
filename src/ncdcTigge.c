@@ -23,6 +23,7 @@ int main(int argc, char** argv)
 	int status = -1;
 	char aFileName[256];
 	char bFileName[256];
+	char sFileName[256];
 	time_t ensembleStart, ensembleEnd;
 	double elapsedEnsembleTime;
 
@@ -110,9 +111,6 @@ int main(int argc, char** argv)
 	
 	printf("Done Arg parser.\n\n");
 
-	int n_lon = get_n_lon(year,month,day,hour);
-	int n_lat = get_n_lat(year,month,day,hour);
-
 	/* Definitions for the Time Integrated Variables */
 	//void** testVariableBuffer = NULL;
 
@@ -152,6 +150,11 @@ int main(int argc, char** argv)
 		for(forecastHour = 0; forecastHour <= FORECAST_HOURS; forecastHour += 6)
 			{
 
+			int n_lat_ab = get_n_lat(year, month, day, hour, 0); // 361 for 0.50-degree (a/b)
+			int n_lon_ab = get_n_lon(year, month, day, hour, 0); // 720 for 0.50-degree (a/b)
+
+			int n_lat_s  = get_n_lat(year, month, day, hour, 2); // 721 for 0.25-degree (s)
+			int n_lon_s  = get_n_lon(year, month, day, hour, 2); // 1440 for 0.25-degree (s)
 
 			// it is ok to fill missing input on fct hour 0 on some rad. fields
 			ignoreMissingInput = 1;
@@ -161,8 +164,6 @@ int main(int argc, char** argv)
 			// Open the A & B files
 			generateInputFilename(0, year, month, day, hour, forecastHour, ensembleMember, aFileName);
 			generateInputFilename(1, year, month, day, hour, forecastHour, ensembleMember, bFileName);
-
-			printf("opening : %s & %s\n",aFileName,bFileName);
 
 			aFile = fopen(aFileName, "r");
 			bFile = fopen(bFileName, "r");
@@ -181,36 +182,64 @@ int main(int argc, char** argv)
 				return(1);
 				}
 
+                       // Open Surface 'S' File ONLY if forecastHour <= 240
+                       if (forecastHour <= 240) {
+                           generateInputFilename(2, year, month, day, hour, forecastHour, ensembleMember, sFileName);
+		           printf("opening : %s & %s & %s\n", aFileName, bFileName, sFileName);
+
+                           sFile = fopen(sFileName, "r");
+                           if (sFile == NULL) {
+                               fprintf(stderr, "WARNING: Surface file \"%s\" could not be opened!\n", sFileName);
+                               return(1);
+                          }
+                      } else {
+                          sFile = NULL;
+                          printf("opening : %s & %s\n", aFileName, bFileName);
+                      }
+
 			printf("+");
 
-			timeIntegratedOutgoingLongWaveRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION, timeIntegratedOutgoingLongWaveRadiationBuffer, n_lat, n_lon);
-			timeIntegratedSurfaceLatentHeatFluxBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_LATENT_HEAT_FLUX, timeIntegratedSurfaceLatentHeatFluxBuffer, n_lat, n_lon);
-			timeIntegratedSurfaceSensibleHeatFluxBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_SENSIBLE_HEAT_FLUX, timeIntegratedSurfaceSensibleHeatFluxBuffer, n_lat, n_lon);
-			timeIntegratedSurfaceNetSolarRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_SOLAR_RADIATION, timeIntegratedSurfaceNetSolarRadiationBuffer, n_lat, n_lon);
-			timeIntegratedSurfaceNetThermalRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_THERMAL_RADIATION, timeIntegratedSurfaceNetThermalRadiationBuffer, n_lat, n_lon);
+			// ---------------------------------------------------------
+                        // Time-Integrated Surface Variables (Radiation & Heat Flux)
+                        // ---------------------------------------------------------
+                        if (forecastHour <= 240) {
+                            // Use high-res 0.25-degree surface grid (s files)
+                            timeIntegratedOutgoingLongWaveRadiationBuffer  = loadDataForVariable(TIME_INTEGRATED_OUTGOING_LONG_WAVE_RADIATION, timeIntegratedOutgoingLongWaveRadiationBuffer, n_lat_s, n_lon_s);
+                            timeIntegratedSurfaceLatentHeatFluxBuffer      = loadDataForVariable(TIME_INTEGRATED_SURFACE_LATENT_HEAT_FLUX, timeIntegratedSurfaceLatentHeatFluxBuffer, n_lat_s, n_lon_s);
+                            timeIntegratedSurfaceSensibleHeatFluxBuffer    = loadDataForVariable(TIME_INTEGRATED_SURFACE_SENSIBLE_HEAT_FLUX, timeIntegratedSurfaceSensibleHeatFluxBuffer, n_lat_s, n_lon_s);
+                            timeIntegratedSurfaceNetSolarRadiationBuffer   = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_SOLAR_RADIATION, timeIntegratedSurfaceNetSolarRadiationBuffer, n_lat_s, n_lon_s);
+                            timeIntegratedSurfaceNetThermalRadiationBuffer = loadDataForVariable(TIME_INTEGRATED_SURFACE_NET_THERMAL_RADIATION, timeIntegratedSurfaceNetThermalRadiationBuffer, n_lat_s, n_lon_s);
+                        }
 
-			// End of the fields that have missing file protection.
-			ignoreMissingInput = 0;
+                        // End of the fields that have missing file protection.
+                        ignoreMissingInput = 0;
 
-	// NON- Time Integrated variables.
-	//status = generateVariable(TEST_VARIABLE, year, month, day, hour, forecastHour, ensembleMember, NULL);
+                        // NON- Time Integrated variables.
+                        if (forecastHour <= 240) {
+                            status = generateVariable(SNOW_FALL_WATER_EQUIVALENT, year, month, day, hour, forecastHour, ensembleMember, NULL);
+                            status = generateVariable(TOTAL_COLUMN_WATER, year, month, day, hour, forecastHour, ensembleMember, NULL);
+                            status = generateVariable(SOIL_MOISTURE, year, month, day, hour, forecastHour, ensembleMember, NULL);
+                            status = generateVariable(SOIL_TEMPERATURE, year, month, day, hour, forecastHour, ensembleMember, NULL);
+                        }
+                        status = generateVariable(POTENTIAL_TEMPERATURE, year, month, day, hour, forecastHour, ensembleMember, NULL);
 
-			status = generateVariable(SNOW_FALL_WATER_EQUIVALENT, year, month, day, hour, forecastHour, ensembleMember, NULL);
-			status = generateVariable(TOTAL_COLUMN_WATER, year, month, day, hour, forecastHour, ensembleMember, NULL);
-			status = generateVariable(POTENTIAL_TEMPERATURE, year, month, day, hour, forecastHour, ensembleMember, NULL);
-			status = generateVariable(SOIL_MOISTURE, year, month, day, hour, forecastHour, ensembleMember, NULL);
-			status = generateVariable(SOIL_TEMPERATURE, year, month, day, hour, forecastHour, ensembleMember, NULL);
+                        // ---------------------------------------------------------
+                        // Precipitation and Snow
+                        // ---------------------------------------------------------
+                        if (forecastHour <= 240) {
+                            totalPrecipitationBuffer                    = loadDataForVariable(TOTAL_PRECIPITATION, totalPrecipitationBuffer, n_lat_s, n_lon_s);
+                            timeIntegratedSnowFallWaterEquivalentBuffer = loadDataForVariable(TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT, timeIntegratedSnowFallWaterEquivalentBuffer, n_lat_s, n_lon_s);
+                        }
 	
-			// Load the data for the Time integrated variables
-			//testVariableBuffer = loadDataForVariable(TEST_VARIABLE_TI, testVariableBuffer);
-
-
-			totalPrecipitationBuffer = loadDataForVariable(TOTAL_PRECIPITATION, totalPrecipitationBuffer, n_lat, n_lon);
-            timeIntegratedSnowFallWaterEquivalentBuffer = loadDataForVariable(TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT, timeIntegratedSnowFallWaterEquivalentBuffer, n_lat, n_lon);
-
 			// close the ncep files that are still open.
 			fclose(aFile);
 			fclose(bFile);
+
+                        if (sFile != NULL) {
+                            fclose(sFile);
+                            sFile = NULL;
+                        }
+
 			printf("*");		// poor mans "Status bar" tick
 			fflush(stdout);
 			}
@@ -236,7 +265,7 @@ int main(int argc, char** argv)
 		freeDataForVariable(TIME_INTEGRATED_SURFACE_SENSIBLE_HEAT_FLUX, timeIntegratedSurfaceSensibleHeatFluxBuffer);
 		freeDataForVariable(TIME_INTEGRATED_SURFACE_NET_SOLAR_RADIATION, timeIntegratedSurfaceNetSolarRadiationBuffer);
 		freeDataForVariable(TIME_INTEGRATED_SURFACE_NET_THERMAL_RADIATION, timeIntegratedSurfaceNetThermalRadiationBuffer);
-        freeDataForVariable(TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT, timeIntegratedSnowFallWaterEquivalentBuffer);
+		freeDataForVariable(TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT, timeIntegratedSnowFallWaterEquivalentBuffer);
 		freeDataForVariable(TOTAL_PRECIPITATION, totalPrecipitationBuffer);
 		
 		// stop the clock
