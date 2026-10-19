@@ -330,54 +330,79 @@ int generateFileName(int variableName, int yyyy, int mm, int dd, int hh, int fff
 **    int    0 = ok,  anything else = error
 **
 */
+
 void generateInputFilename(int fileNumber, int yyyy, int mm, int dd, int hh, int fff, int em, char* fileName) {
 
 	char* newFileNamePrefix = getenv("TIGGE_INPUT");
 	char directoryString[12];
 	char modelEnsembleMember[3];
 	char fileLetter[3];
+	char resString[5];
 
-	sprintf(directoryString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
-	if(fileNumber == 0)
-		strcpy(fileLetter, "a");
-	else
-		strcpy(fileLetter, "b");
+    sprintf(directoryString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
 
-	if(em == 0)
-		sprintf(modelEnsembleMember, "c%02d", em);
-	else
-		sprintf(modelEnsembleMember, "p%02d", em);
+    if (fileNumber == 0) {
+        strcpy(fileLetter, "a");
+        strcpy(resString, "0p50");
+    } else if (fileNumber == 1) {
+        strcpy(fileLetter, "b");
+        strcpy(resString, "0p50");
+    } else if (fileNumber == 2) {
+        strcpy(fileLetter, "s");
+        strcpy(resString, "0p25");
+    } else {
+        strcpy(fileLetter, "a"); // Fallback safety default
+        strcpy(resString, "0p50");
+    }
 
-	if( strcmp(directoryString, "2020092312") < 0 )
-		sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%sf%02d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
-	else
-		sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%s.0p50.f%03d", newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
+    if (em == 0)
+        sprintf(modelEnsembleMember, "c%02d", em);
+    else
+        sprintf(modelEnsembleMember, "p%02d", em);
+
+    if (strcmp(directoryString, "2020092312") < 0) {
+        sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%sf%02d",
+                newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, fff);
+    } else {
+        sprintf(fileName, "%s/%s/ge%s.t%02dz.pgrb2%s.%s.f%03d",
+                newFileNamePrefix, directoryString, modelEnsembleMember, hh, fileLetter, resString, fff);
+    }
 
 	return;
 }
 
-int get_n_points(int yyyy, int mm, int dd, int hh) {
-	return get_n_lat(yyyy,mm,dd,hh) * get_n_lon(yyyy,mm,dd,hh);
+int get_n_points(int yyyy, int mm, int dd, int hh, int fileNumber) {
+    return get_n_lat(yyyy, mm, dd, hh, fileNumber) * get_n_lon(yyyy, mm, dd, hh, fileNumber);
 }
 
-int get_n_lat(int yyyy, int mm, int dd, int hh) {
-	char dateString[12];
-	sprintf(dateString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
+int get_n_lat(int yyyy, int mm, int dd, int hh, int fileNumber) {
+    char dateString[12];
+    sprintf(dateString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
 
-	if( strcmp(dateString, "2020092312") < 0 )
-		return 181;
-	else
-		return 361;
+    if (strcmp(dateString, "2020092312") < 0) {
+        return 181;
+    } else {
+        if (fileNumber == 2) {
+            return 721; // 0.25-degree grid
+        } else {
+            return 361; // 0.50-degree grid ('a' and 'b' files)
+        }
+    }
 }
 
-int get_n_lon(int yyyy, int mm, int dd, int hh) {
-	char dateString[12];
-	sprintf(dateString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
+int get_n_lon(int yyyy, int mm, int dd, int hh, int fileNumber) {
+    char dateString[12];
+    sprintf(dateString, "%04d%02d%02d%02d", yyyy, mm, dd, hh);
 
-	if( strcmp(dateString, "2020092312") < 0 )
-		return 360;
-	else
-		return 720;	
+    if (strcmp(dateString, "2020092312") < 0) {
+        return 360;
+    } else {
+        if (fileNumber == 2) {
+            return 1440; // 0.25-degree grid
+        } else {
+            return 720;  // 0.50-degree grid ('a' and 'b' files)
+        }
+    }
 }
 
 int get_n_members(int yyyy, int mm, int dd, int hh) {
