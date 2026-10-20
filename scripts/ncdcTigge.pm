@@ -10,7 +10,6 @@ use File::Path;
 require Exporter;
 
 our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([abs])(\.(?:0p50|0p25)\.)?f(\d{2,3})$);
-# our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([ab])(\.0p50\.)?f(\d{2,3})$);
 
 our @ISA = qw(Exporter);
 
@@ -41,14 +40,6 @@ sub get_n_members($) {
     }
 }
 
-#sub getQcNumPoints($) {
-#    my ($cycle) = @_;
-#    if ($cycle >= 2020092312) {
-#        return 259920;   # Number of datapoints contained in 0.5-deg Grid
-#    } else {
-#        return 65160;    # Number of datapoints contained in GENS-3 Grid
-#    }
-#}
 sub getQcNumPoints {
     my ($cycle, $grib_type) = @_;
 
@@ -335,14 +326,12 @@ my $grib_type = 'a'; # fallback default
     if ($inFileName =~ $gefs_filepattern) {
         $grib_type = $3; # Captures 'a', 'b', or 's' from regex
     }
-print STDOUT "grib_type is $grib_type\n";
 
         # Inport module level QC Settings
 my $CENTER 			= $ncdcTigge::qcCenterCode;
 my $REC_BYTE_MIN	= $ncdcTigge::qcRecByteMin;
 my $GEN_PROCESS_NUM	= $ncdcTigge::qcGensProcessIdNum;
 # my $NUM_POINTS 		= $ncdcTigge::qcNumPoints;
-#my $MAX_FCT 		= $ncdcTigge::FCT_HOURS;
 my $MAX_FCT = $ncdcTigge::FCT_HOURS{$grib_type} // 384;
 my $GRIB_LS = "${ncdcTigge::GRIB_API_BIN}/grib_ls";
 
@@ -350,7 +339,6 @@ my $ArecCountAnl = $ncdcTigge::qcGensAnlARecCount;
 my $ArecCountFct = $ncdcTigge::qcGensFctARecCount;
 my $BrecCountAnl = $ncdcTigge::qcGensAnlBRecCount;
 my $BrecCountFct = $ncdcTigge::qcGensFctBRecCount;
-
 
 if( !(-e $inFile) )
     { return(1,"File related error","File \"$inFile\" does not exist!\n\n"); }
@@ -581,9 +569,6 @@ return(0,"OK",@messages);
 sub qcGensCycle($;$;$)
 {
 my $headline = "$0:ncdcTigge::qcGensCycle : ";
-#my $MEM_FILES = 65;
-#if( $ncdcTigge::FCT_INC != 0 )
-#	{ $MEM_FILES = int($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC) +1; }
 
 my $inDir = shift(@_);
 my $cycle = shift(@_);
@@ -690,35 +675,6 @@ foreach my $thisFile ( @dirGrb ) {
     }
 }
 
-#for( my $m = 0; $m < get_n_members($cycle); $m++ ) {
-#    my $aKey = sprintf("%02d-%1s",$m,"a");
-#    my $bKey = sprintf("%02d-%1s",$m,"b");
-#	if( !defined($filesPerMember{$aKey}) )
-#		{ return("### $headline FAILED Member \# ${m}-a No files found!\n"); }
-#	if( !defined($filesPerMember{$bKey}) )
-#		{ return("### $headline FAILED Member \# ${m}-b No files found!\n"); }
-#    my $aCount = $filesPerMember{$aKey};
-#    my $bCount = $filesPerMember{$bKey};
-#    if( $aCount != $MEM_FILES) {
-#        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
-#            my $hourCode = sprintf("%02-a-%02",$m,$f);
-#            if( !$fileFound{$hourCode} ) {
-#              print STDERR " ! MISSING A FILE: $inDir Member ${m} / Fct $f \n";
-#            }
-#        }
-#        return("### $headline FAILED Member \# ${m}-a Does not contain $MEM_FILES files, ($aCount Found) \n");
-#    }
-#    if( $bCount != $MEM_FILES) {
-#        for ( my $f=0; $f < $ncdcTigge::FCT_HOURS; $f+=$ncdcTigge::FCT_INC ) {
-#            my $hourCode = sprintf("%02-b-%02",$m,$f);
-#            if( !$fileFound{$hourCode} ) {
-#              print STDERR " ! MISSING B FILE: $inDir Member ${m} / Fct $f \n";
-#            }
-#        }
-#        return("### $headline FAILED Member \# ${m}-b Does not contain $MEM_FILES.\n files, ($bCount Found) \n");
-#    }
-#}
-
 for( my $m = 0; $m < get_n_members($cycle); $m++ ) {
     my $memStr = sprintf("%02d", $m); # Formats member as '00', '01', etc.
 
@@ -726,19 +682,16 @@ for( my $m = 0; $m < get_n_members($cycle); $m++ ) {
     foreach my $type ('a', 'b', 's') {
         my $key = "$memStr-$type";
 
-        # 1. Dynamically get MAX_FCT and expected MEM_FILES for this specific type
         my $max_fct = $ncdcTigge::FCT_HOURS{$type} // $ncdcTigge::FCT_HOURS;
         my $expected_files = 65; # fallback
         if ( $ncdcTigge::FCT_INC != 0 ) {
             $expected_files = int($max_fct / $ncdcTigge::FCT_INC) + 1;
         }
 
-        # 2. Did we find ANY files for this member-type?
         if( !defined($filesPerMember{$key}) ) {
             return("### $headline FAILED Member \# ${memStr}-${type} No files found!\n");
         }
 
-        # 3. Did we find the EXACT number of expected files?
         my $count = $filesPerMember{$key};
         if( $count != $expected_files ) {
 
@@ -846,7 +799,7 @@ if( !(-r $ENV{'TIGGE_OUTPUT'}) )
 
 
 my $numVars = $#ncdcTigge::tiggeVarCodes + 1;
-my $expectedVarCount = get_n_members($cycle) * ($ncdcTigge::FCT_HOURS / $ncdcTigge::FCT_INC +1);
+my $expectedVarCount = get_n_members($cycle) * ($ncdcTigge::FCT_HOURS{'s'} / $ncdcTigge::FCT_INC +1);
 my $expectedCycleCount = $expectedVarCount * $numVars;
 
 print STDOUT " * Scanning dir; [$ENV{'TIGGE_OUTPUT'}] \n";
@@ -1001,7 +954,6 @@ sub runCycle($;$) {
             return(10);
             }
     }
-
 
     # QC Passed, throw the switch!
     # Note - the ncdcTigge application needs to be run with cwd ".", 
