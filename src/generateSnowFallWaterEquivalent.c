@@ -10,9 +10,9 @@
 void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
 	grib_handle* ncepCategoricalSnowfall = NULL;
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,2);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,2);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,2);
 	double* ncepCategoricalSnowfallValues = NULL;
 	
 	grib_handle* ncepTotalRainfall = NULL;
@@ -36,7 +36,6 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 	timeStructure->tm_mon = mm - 1;  //month
 	timeStructure->tm_mday = dd;  //day
 	timeStructure->tm_hour = hh;  //hour
-
 	/*printf("Testing:\n");
 	printf("year (untouched):  %d \n", timeStructure->tm_year+1900);
 	timeStructure->tm_mon += 12;
@@ -54,7 +53,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 	*/
 	
 	// first, is the file here?
-	if(aFile == NULL){
+	if(sFile == NULL){
 		fprintf(stderr, "Error, could not read the required file.  Exiting generateSnowFallWaterEquivalent()\n");
 		return;
 	}
@@ -123,7 +122,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 				grib_handle_delete(ncepCategoricalSnowfall);
 				ncepCategoricalSnowfall = NULL;
 			}
-			ncepCategoricalSnowfall = grib_handle_new_from_file(0, aFile, &errorCode);
+			ncepCategoricalSnowfall = grib_handle_new_from_file(0, sFile, &errorCode);
 			if(ncepCategoricalSnowfall == NULL){
 				fprintf(stderr, "Error (ncepCategoricalSnowfall) There was a problem reading the grib_handle.  Exiting generateSnowFallWaterEquivalent()\n");
 				return;	
@@ -152,7 +151,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 		//
 		// now that the ncepCategoricalSnowfall is filled. we must fill the total rainfall array.
 		//		
-		rewind(aFile); /* reset it to the beginning of the file */
+		rewind(sFile); /* reset it to the beginning of the file */
 		ncepDiscipline = ncepParameterCategory = ncepParameterNumber = -1;
 		while( (ncepDiscipline != 0) || (ncepParameterCategory != 1) || (ncepParameterNumber != 8) ){
 			if(ncepTotalRainfall != NULL){
@@ -160,7 +159,7 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 				ncepTotalRainfall = NULL;
 			}
 			
-			ncepTotalRainfall = grib_handle_new_from_file(0, aFile, &errorCode);
+			ncepTotalRainfall = grib_handle_new_from_file(0, sFile, &errorCode);
 			if(ncepTotalRainfall == NULL){
 				fprintf(stderr, "Error (ncepTotalRainfall) There was a problem reading the grib_handle.  Exiting generateSnowFallWaterEquivalent()\n");
 				return;
@@ -237,6 +236,6 @@ void generateSnowFallWaterEquivalent(int yyyy, int mm, int dd, int hh, int fff, 
 	grib_handle_delete(ncepCategoricalSnowfall);
 	grib_handle_delete(ncepTotalRainfall);
 	// rewind the file
-	rewind(aFile);
+	rewind(sFile);
 
 }

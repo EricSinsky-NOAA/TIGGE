@@ -26,9 +26,9 @@ void generatePotentialTemperature(int yyyy, int mm, int dd, int hh, int fff, int
 	grib_handle* temp = NULL;
 	int pressureNorthFound, pressureSouthFound, temperatureNorthFound, temperatureSouthFound;
 
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,0);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,0);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,0);
 	
 	double* ncepPressureNorthValues = NULL;
 	double* ncepPressureSouthValues = NULL;

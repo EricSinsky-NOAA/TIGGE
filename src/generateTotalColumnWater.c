@@ -10,9 +10,9 @@
 void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
 	grib_handle* ncepTotalPrecipWater = NULL;
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,2);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,2);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,2);
 	double* ncepTotalPrecipWaterValues = NULL;
 	
 	grib_handle* ncepTotalCloudWater = NULL;
@@ -31,14 +31,10 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 	*/
 	
 	// first, is the file here?
-	if(aFile == NULL){
-		fprintf(stderr, "Error, could not read the required file.  Exiting generateTotalColumnWater()\n");
-		return;
-	}
-	if(bFile == NULL){
-		fprintf(stderr, "Error, could not read the required file.  Exiting generateTotalColumnWater()\n");
-		return;
-	}
+        if(sFile == NULL){
+                fprintf(stderr, "Error, could not read the required file.  Exiting generateTotalColumnWater()\n");
+                return;
+        }
 	
 	// first create the new skeleton file.
 	gh = newGribRecord(yyyy, mm, dd, hh, fff, em, n_lat, n_lon);
@@ -93,7 +89,7 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 			grib_handle_delete(ncepTotalPrecipWater);
 			ncepTotalPrecipWater = NULL;
 		}
-		ncepTotalPrecipWater = grib_handle_new_from_file(0, aFile, &errorCode);
+		ncepTotalPrecipWater = grib_handle_new_from_file(0, sFile, &errorCode);
 		if(ncepTotalPrecipWater == NULL){
 			fprintf(stderr, "Error (ncepTotalPrecipWater) There was a problem reading the grib_handle.  Exiting generateSnowFallWaterEquivalent(%d)\n", errorCode);
 			return;
@@ -126,7 +122,7 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 			ncepTotalCloudWater = NULL;
 		}
 		
-		ncepTotalCloudWater = grib_handle_new_from_file(0, bFile, &errorCode);
+		ncepTotalCloudWater = grib_handle_new_from_file(0, sFile, &errorCode);
 		if(ncepTotalCloudWater == NULL){
 			fprintf(stderr, "Error (ncepTotalCloudWater) There was a problem reading the grib_handle.  Exiting generateTotalColumnWater()\n");
 			return;
@@ -185,7 +181,6 @@ void generateTotalColumnWater(int yyyy, int mm, int dd, int hh, int fff, int em)
 	grib_handle_delete(ncepTotalPrecipWater);
 	grib_handle_delete(ncepTotalCloudWater);
 	// rewind the file
-	rewind(aFile);
-	rewind(bFile);
+	rewind(sFile);
 
 }

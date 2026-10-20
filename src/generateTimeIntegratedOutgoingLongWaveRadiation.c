@@ -13,9 +13,9 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 	
 	long temp = 0;
 	double* ncepValues = NULL;
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,2);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,2);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,2);
 	grib_handle* gh;
 
 	double* runningSum = NULL;
@@ -194,9 +194,7 @@ void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void** gribBuffers, in
 		if(h != NULL){
 			grib_handle_delete(h);
 		}
-		h = grib_handle_new_from_file(0, aFile, &err);
-                if (h == NULL) 
-			{ h = grib_handle_new_from_file( 0, bFile, &err ); }
+		h = grib_handle_new_from_file(0, sFile, &err);
 		if (h == NULL && ignoreMissingInput != 0 ) 
 			{
 			h = newBlankGribRecord( 0, 5, 193, 8, n_lat, n_lon );
@@ -226,9 +224,7 @@ void** loadDataForTimeIntegratedOutgoingLongWaveRadiation(void** gribBuffers, in
 	
 	grib_handle_delete(h);
 
-
-	rewind(aFile);
-	rewind(bFile);
+        rewind(sFile);
 	// h should now be set, so we want to add it to the grib handle array, and return it.
 	//return addGribRecordToArray(gribBuffers, buffer);
 	return retBuffer;

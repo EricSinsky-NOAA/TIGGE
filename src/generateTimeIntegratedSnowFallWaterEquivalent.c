@@ -21,9 +21,9 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
     char fileName[256];
 
 	// SIZE DEFS
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,2);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,2);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,2);
 	
 	// GRIB RECORD HANDLES
 	grib_handle* gh = NULL;
@@ -496,14 +496,13 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers, int 
     size_t ncepValuesSize = n_lat * n_lon;
 
 		// Is the a file here?
-    if(aFile == NULL)
+    if(sFile == NULL)
         {
         fprintf(stderr, "Error, could not read the required file.  Exiting generateSnowFallWaterEquivalent()\n");
         printf("\nTerminated : loadDataForTimeIntegratedSnowFallWaterEquivalent\n\n");
 		exit(1);
         }
-	rewind(aFile);
-	rewind(bFile);
+	rewind(sFile);
 
 	// test if this is the first one.
 	if( !numberOfSavedRecords[TIME_INTEGRATED_SNOW_FALL_WATER_EQUIVALENT] )
@@ -516,7 +515,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers, int 
 	//		reset seeker values
 	found1 = found2 = 0;
 	ncepDiscipline = ncepCategory = ncepVariable = -1;
-	rewind(aFile);
+	rewind(sFile);
 
 	// optomized for 2 variables, 
 	//    hopefully this will speed things up quite a bit.
@@ -531,14 +530,14 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers, int 
         if( (h1 != NULL) ) 
 			{ grib_handle_delete(h1); }
 
-				// Snag the next grib record from fileHandle (aFile) -> Check Handle
+				// Snag the next grib record from fileHandle (sFile) -> Check Handle
 				// 		Bail if problem
-		h1 = grib_handle_new_from_file(0, aFile, &err);
-		if ( feof(aFile)  )
+		h1 = grib_handle_new_from_file(0, sFile, &err);
+		if ( feof(sFile)  )
 			{
 
-	            //	aFile is at EOF --  We got a big problem...
-				// Either aFile is corrupt, or expected records not found in file 
+	            //	sFile is at EOF --  We got a big problem...
+				// Either sFile is corrupt, or expected records not found in file
 				// or even possibly - but not likely - a GRIB API problem
 
 				// This issue will always occur @ fct hr 000, so silencing the message...
@@ -552,9 +551,9 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers, int 
 
 			// Rewind file and reset grib handle to first record 
 			// 		(Actually gets a valid record to use as the dummy)
-			rewind(aFile);
+			rewind(sFile);
 			grib_handle_delete(h1);
-			h1 = grib_handle_new_from_file(0, aFile, &err);
+			h1 = grib_handle_new_from_file(0, sFile, &err);
 
             //  set the flag to return a zero-ed array later on
             setDummy++;
@@ -681,7 +680,7 @@ void** loadDataForTimeIntegratedSnowFallWaterEquivalent(void** gribBuffers, int 
 
 	grib_handle_delete(h2);
 	free( tiggeTimeIntegratedSnowFallWaterEquivalentValues );
-	rewind(aFile);
+	rewind(sFile);
 
 	return retBuffer;
 	}

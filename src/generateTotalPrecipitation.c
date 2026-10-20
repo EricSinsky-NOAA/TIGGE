@@ -13,9 +13,9 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 	
 	long temp = 0;
 	double* ncepValues = NULL;
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,2);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,2);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,2);
 	grib_handle* gh;
 
 	double* runningSum = NULL;
@@ -163,7 +163,7 @@ void** loadDataForTotalPrecipitation(void** gribBuffers, int n_lat, int n_lon)
 			if(h != NULL){
 				grib_handle_delete(h);
 			}
-			h = grib_handle_new_from_file(0, aFile, &err);
+			h = grib_handle_new_from_file(0, sFile, &err);
 			if (h == NULL) {
 				printf("Error (generateTotalPrecipitation) unable to create handle from file. error code: %d \n", err);
 				return NULL;
@@ -198,7 +198,7 @@ void** loadDataForTotalPrecipitation(void** gribBuffers, int n_lat, int n_lon)
 //		free(buffer);
 //		}
 
-	rewind(aFile);
+	rewind(sFile);
 
 	return retBuffer;
 }
