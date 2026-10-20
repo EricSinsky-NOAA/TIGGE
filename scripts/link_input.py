@@ -97,7 +97,7 @@ def get_link_filenames(directory: str, when: datetime, members: typing.List[str]
             member=member,
             forecast_hour=forecast_hour,
             grib_type=grib_type,
-            grid_res=grid_res,  # Pass resolution here
+            grid_res=grid_res,
         )
         for grib_type, (grid_res, _, hours) in GEFS_VARIABLE_GROUPS.items()
         for member in members
@@ -119,7 +119,7 @@ def get_source_filenames(source_dir: str, when: datetime, members: typing.List[s
             member=member,
             forecast_hour=forecast_hour,
             grib_type=grib_type,
-            grid_res=grid_res,  # Pass resolution here
+            grid_res=grid_res,
         )
         for grib_type, (grid_res, path_suffix, hours) in GEFS_VARIABLE_GROUPS.items()
         for member in members
