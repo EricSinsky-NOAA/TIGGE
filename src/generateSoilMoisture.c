@@ -9,9 +9,9 @@
 void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
 	grib_handle* ncepUpperSoilMoisture = NULL;
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,2);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,2);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,2);
 	double* ncepUpperSoilMoistureValues = NULL;
 	
 	grib_handle* ncepLowerSoilMoisture = NULL;
@@ -30,7 +30,7 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	*/
 	
 	// first, is the file here?
-	if(bFile == NULL){
+	if(sFile == NULL){
 		fprintf(stderr, "Error, could not read the required file.  Exiting generateSoilMoisture()\n");
 		return;
 	}
@@ -95,7 +95,7 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 		
 		if( !found1 && !found2 ){
 		// search for the first one.
-			ncepUpperSoilMoisture = grib_handle_new_from_file(0, bFile, &errorCode);
+			ncepUpperSoilMoisture = grib_handle_new_from_file(0, sFile, &errorCode);
 			if (ncepUpperSoilMoisture == NULL) {
 				printf("Error (ncepUpperSoilMoisture) unable to create handle from file. error code: %d \n", errorCode);
 				return;
@@ -120,7 +120,7 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 		
 		}else if( found1 && !found2){
 		// search for the second one.
-			ncepLowerSoilMoisture = grib_handle_new_from_file(0, aFile, &errorCode);
+			ncepLowerSoilMoisture = grib_handle_new_from_file(0, sFile, &errorCode);
 			if (ncepLowerSoilMoisture == NULL) {
 				printf("Error (ncepLowerSoilMoisture) unable to create handle from file. error code: %d \n", errorCode);
 				return;
@@ -185,7 +185,6 @@ void generateSoilMoisture(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle_delete(ncepUpperSoilMoisture);
 	grib_handle_delete(ncepLowerSoilMoisture);
 	// rewind the file
-	rewind(bFile);
-	rewind(aFile);
+	rewind(sFile);
 
 }

@@ -10,13 +10,12 @@
 void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle* gh = NULL;
 
-        rewind(aFile);
-        rewind(bFile);
+        rewind(sFile);
 
 	grib_handle* ncepUpperSoilTemperature = NULL;
-	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh);
-	int n_lat = get_n_lat(yyyy,mm,dd,hh);
-	int n_lon = get_n_lon(yyyy,mm,dd,hh);
+	size_t ncepValuesSize = get_n_points(yyyy,mm,dd,hh,2);
+	int n_lat = get_n_lat(yyyy,mm,dd,hh,2);
+	int n_lon = get_n_lon(yyyy,mm,dd,hh,2);
 	double* ncepUpperSoilTemperatureValues = NULL;
 	
 	grib_handle* ncepLowerSoilTemperature = NULL;
@@ -31,21 +30,15 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	int errorCode;
 	
 	/*
-	** Section 1.  read the A file (from NCEP)
+	** Section 1.  read the S file (from NCEP)
 	*/
 	
 	// first, is the file here?
-	if(aFile == NULL)
+	if(sFile == NULL)
 		{
-		fprintf(stderr, "Error, could not read the a-type file.  Exiting generateSoilTemperature() \n");
+		fprintf(stderr, "Error, could not read the s-type file.  Exiting generateSoilTemperature() \n");
 		return;
 		}
-        if( bFile == NULL )
-                {
-                fprintf( stderr, "Error, could not read the b-type file.  Exiting generateSoilTemperature( )\n");
-                return;
-                }
-
 
 	
 	// first create the new skeleton file.
@@ -112,12 +105,12 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 
 
 			//printf("DEBUG: Looking through A file.\n");
-			ncepUpperSoilTemperature = grib_handle_new_from_file(0, aFile, &errorCode);
+			ncepUpperSoilTemperature = grib_handle_new_from_file(0, sFile, &errorCode);
 
 			if( ncepUpperSoilTemperature == NULL ) 
 				{
 				// printf("DEBUG: Looking through B file.\n");
-				ncepUpperSoilTemperature = grib_handle_new_from_file( 0, bFile, &errorCode );
+				ncepUpperSoilTemperature = grib_handle_new_from_file( 0, sFile, &errorCode );
 				}
 
 
@@ -149,12 +142,12 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 			{
 			// search for the second one.
 
-			ncepLowerSoilTemperature = grib_handle_new_from_file(0, aFile, &errorCode);
+			ncepLowerSoilTemperature = grib_handle_new_from_file(0, sFile, &errorCode);
 
 				// As like above, try the B file too.
                         if (ncepLowerSoilTemperature == NULL)
 				{
-				ncepLowerSoilTemperature = grib_handle_new_from_file(0, bFile, &errorCode );
+				ncepLowerSoilTemperature = grib_handle_new_from_file(0, sFile, &errorCode );
 				}
 
 
@@ -219,7 +212,6 @@ void generateSoilTemperature(int yyyy, int mm, int dd, int hh, int fff, int em){
 	grib_handle_delete(ncepLowerSoilTemperature);
 
 	// rewind the files
-	rewind(aFile);
-	rewind(bFile);
+	rewind(sFile);
 
 }
