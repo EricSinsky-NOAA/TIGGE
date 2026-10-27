@@ -41,7 +41,7 @@ void generateTimeIntegratedOutgoingLongWaveRadiation(int yyyy, int mm, int dd, i
 
 	grib_handle* ncepGribRecord = NULL;
 	// for each forecast  hour.
-	for(fff = 0; fff<=FORECAST_HOURS; fff+=6){
+	for(fff = 0; fff<=FORECAST_HOURS_HR; fff+=6){
 
 // printf("\nDEBUG : fct = %i\n",fff);
 		

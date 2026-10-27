@@ -33,7 +33,7 @@ void generateTotalPrecipitation(int yyyy, int mm, int dd, int hh, int em, void**
 
 	grib_handle* ncepGribRecord = NULL;
 	// for each forecast  hour.
-	for(fff = 0; fff<=FORECAST_HOURS; fff+=6){
+	for(fff = 0; fff<=FORECAST_HOURS_HR; fff+=6){
 		
 		if(fff != 0){
 			ncepGribRecord = grib_handle_new_from_message(NULL, resource[fff/6], bytesPerRecord[TOTAL_PRECIPITATION][fff/6]);

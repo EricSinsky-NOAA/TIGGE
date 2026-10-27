@@ -16,7 +16,8 @@
 #include <math.h>
 
 // #define ENSEMBLE_MEMBERS 21
-#define FORECAST_HOURS 240
+#define FORECAST_HOURS 384
+#define FORECAST_HOURS_HR 240
 #define NUMBER_OF_VARIABLES 13
 #define QUEUE_MAX 11
 

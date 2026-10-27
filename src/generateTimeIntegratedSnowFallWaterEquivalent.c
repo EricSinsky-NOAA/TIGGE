@@ -63,7 +63,7 @@ void generateTimeIntegratedSnowFallWaterEquivalent(int yyyy, int mm, int dd, int
     
     
     
-    for(fff = 0; fff <= FORECAST_HOURS; fff+=6)
+    for(fff = 0; fff <= FORECAST_HOURS_HR; fff+=6)
       {
 	
 	int resourceIndex = (int) (fff/6);

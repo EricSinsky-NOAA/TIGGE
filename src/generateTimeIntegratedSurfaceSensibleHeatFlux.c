@@ -40,7 +40,7 @@ void generateTimeIntegratedSurfaceSensibleHeatFlux(int yyyy, int mm, int dd, int
 	
 	grib_handle* ncepGribRecord = NULL;
 	// for each forecast  hour.
-	for(fff = 0; fff<=FORECAST_HOURS; fff+=6){
+	for(fff = 0; fff<=FORECAST_HOURS_HR; fff+=6){
 		
 	    // populate tmEnd with forecast time offset, add to initial time 
 	    tmEnd.yr = 0;
