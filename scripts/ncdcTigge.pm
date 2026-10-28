@@ -14,7 +14,7 @@ our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([abs])(\.(?:0p50|0p25)
 our @ISA = qw(Exporter);
 
 our %EXPORT_TAGS = ( 'all' => 	[
-   qw( %RequiredVariablesA %RequiredVariablesB $GRIB_API_BIN $gefs_filepattern &cleanupLocation &mergeRecords &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle &FCT_HOURS &FCT_INC) 
+   qw( %RequiredVariablesA %RequiredVariablesB $GRIB_API_BIN $gefs_filepattern &cleanupLocation &mergeRecords &convertToCCSDS &qcGensFile &qcGensCycle &qcOutput &runLatest &getDTGfromGensFileName &archiveOutput &packCycle &FCT_HOURS &FCT_INC) 
 								] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -798,9 +798,17 @@ if( !(-r $ENV{'TIGGE_OUTPUT'}) )
 	{ return("FAIL","$headline : tigge/Output directory is not readable!! \"$ENV{'TIGGE_OUTPUT'}\" \n"); }
 
 
-my $numVars = $#ncdcTigge::tiggeVarCodes + 1;
-my $expectedVarCount = get_n_members($cycle) * ($ncdcTigge::FCT_HOURS{'s'} / $ncdcTigge::FCT_INC +1);
-my $expectedCycleCount = $expectedVarCount * $numVars;
+our %VARS_384 = map { $_ => 1 } qw(pt);
+
+my $memberCount   = get_n_members($cycle);
+my $stepsStandard = ($ncdcTigge::FCT_HOURS{'s'} / $ncdcTigge::FCT_INC) + 1; # 41 steps
+my $stepsPt       = ($ncdcTigge::FCT_HOURS{'a'} / $ncdcTigge::FCT_INC) + 1; # 65 steps
+
+my $expectedCycleCount = 0;
+foreach my $varCode (@ncdcTigge::tiggeVarCodes) {
+    my $steps = $VARS_384{$varCode} ? $stepsPt : $stepsStandard;
+    $expectedCycleCount += $memberCount * $steps;
+}
 
 print STDOUT " * Scanning dir; [$ENV{'TIGGE_OUTPUT'}] \n";
 opendir(OUTDIR,$ENV{'TIGGE_OUTPUT'}) || 
@@ -809,13 +817,6 @@ my @fileList = sort grep(/\.grib$/,readdir(OUTDIR));
 closedir(OUTDIR);
 my @cycleFileList = grep(/_${cycle}/,@fileList);
 
-# print STDOUT " DEBUG 
-# my numVars = $#ncdcTigge::tiggeVarCodes + 1;
-# my expectedVarCount = $ncdcTigge::ENS_MEMBERS * $ncdcTigge::FCT_HOURS;
-# numVars				$numVars
-# expectedVarCount 	$expectedVarCount
-# expectedCycleCount	$expectedCycleCount
-# [$#fileList] [$#cycleFileList] \n";
 
 my $cycFileCount = $#cycleFileList+1;
 if( $cycFileCount < $expectedCycleCount ) 
@@ -826,9 +827,22 @@ foreach my $tVar ( @ncdcTigge::tiggeVarCodes )
 	{
 	my $ptn = "_${tVar}.grib\$";
 	my @matches = grep(/$ptn/,@cycleFileList);
-	if( int($#matches+1) != $expectedVarCount ) 
-		{ return("FAIL","$headline : ".int($#matches+1)." files found for variable $tVar, expected $expectedVarCount\n\n"); }
+
+        # Calculate expectedVarCount dynamically for this specific variable
+        my $expectedVarCount = $memberCount * ($VARS_384{$tVar} ? $stepsPt : $stepsStandard);
+
+        my $foundCount = scalar(@matches);
+        if ($foundCount != $expectedVarCount) {
+            return("FAIL", "$headline : $foundCount files found for variable $tVar, expected $expectedVarCount\n\n");
+        } else {
+            print STDOUT " * Verified $tVar: $foundCount / $expectedVarCount files present.\n";
+        }
+
 	}
+
+#	if( int($#matches+1) != $expectedVarCount ) 
+#		{ return("FAIL","$headline : ".int($#matches+1)." files found for variable $tVar, expected $expectedVarCount\n\n"); }
+#	}
 
 	# Run tigge_check scanner / var
 my $TIGGE_CHECK = "${ncdcTigge::GRIB_API_BIN}/tigge_check";
@@ -1381,6 +1395,7 @@ opendir( DIR,$archiveTargetDir );
 closedir(DIR);
 
 ncdcTigge::mergeRecords( $archiveTargetDir, $archiveTargetDir, $cycle );
+ncdcTigge::convertToCCSDS( $archiveTargetDir, $archiveTargetDir, $cycle );
 print STDOUT "Merging into master archive: $masterArchive\n\n";
 unlink($masterArchive);
 my @tarRtn =  (`tar -cf $masterArchive z_tigge_c_kwbc_${cycle}0000_*.grib`);
@@ -1585,6 +1600,77 @@ sub mergeRecords($$$)
 
 
 #
+#       Converts grib2 files to grid_ccsds compression (Requested Oct. 2026)
+#
+sub convertToCCSDS($$$) {
+    my $headline = "$0:ncdcTigge::convertToCCSDS(@_)";
+    my $dir    = shift(@_);
+    my $dirOut = shift(@_);
+    my $cyc    = shift(@_);
+
+    if ( $cyc !~ m/^\d{10}$/ ) { return(1); }
+    if ( !(-d $dir) || !(-r $dir) ) { return(2); }
+
+    if ( $dirOut eq "" ) { $dirOut = $dir; }
+    if ( !(-d $dirOut) ) { mkdir($dirOut); }
+    if ( !(-d $dirOut) ) { $dirOut = $dir; }
+
+    # Use grib_set from the module eccodes-2.33.0 from spack-stack 1.9.2 for now
+    my $GRIB_SET = "$ENV{eccodes_ROOT}/bin/grib_set";
+    if ( !(-e $GRIB_SET) ) {
+        print STDERR "### $headline : $GRIB_SET executable was not found!\n\n";
+        return(2);
+    }
+    if ( !(-x $GRIB_SET) ) {
+        print STDERR "### $headline : $GRIB_SET is not executable!\n\n";
+        return(2);
+    }
+
+    # Prepend input directory path to glob pattern
+    my $pattern = "${dir}/z_tigge_c_kwbc_${cyc}0000_*.grib";
+    my @gribFiles = glob($pattern);
+
+    if ( $#gribFiles <= -1 ) { return(-16); }
+
+    print STDOUT "Converting " . scalar(@gribFiles) . " GRIB2 files to CCSDS packing...\n";
+
+    my @checkConvertErrors;
+
+    foreach my $inFile (@gribFiles) {
+        my $baseName = File::Basename::basename($inFile);
+        my $outFile = "${dirOut}/${baseName}";
+        my $tmpFile = "${outFile}.tmp";
+
+        my @rtn = `$GRIB_SET -w isGridded=1 -r -s packingType=grid_ccsds $inFile $tmpFile 2>&1`;
+
+        if ( $#rtn > -1 ) {
+            push(@checkConvertErrors, "Error converting $inFile: @rtn");
+            unlink($tmpFile) if -e $tmpFile;
+        } else {
+            if (-s $tmpFile) {
+                # In-place replace or write to distinct output directory
+                rename($tmpFile, $outFile);
+                print STDOUT "Successfully converted $baseName\n";
+            } else {
+                push(@checkConvertErrors, "Error: $inFile conversion failed silently.\n");
+                unlink($tmpFile) if -e $tmpFile;
+            }
+        }
+    }
+
+    print STDOUT "Finished CCSDS conversion.\n\n";
+
+    if (@checkConvertErrors) {
+        print STDERR "The following errors occurred during conversion:\n";
+        print STDERR @checkConvertErrors;
+        return(8);
+    } else {
+        print STDOUT "The conversion completed without errors.\n";
+        return(0);
+    }
+}
+
+#
 #       Utility function - obtains dates from gens filenames
 #
 sub getDTGfromGensFileName($$)
@@ -1758,9 +1844,23 @@ X)  Ships the data to an FTP server at NCAR
                 3->      String  Cycle "yyyymmddhh" to target within input directory.
 		<-	INT Return code   non-zero means the operation aborted.
 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        sub convertToCCSDS($$$)
+                Converts all GRIB2 files in a given directory for a given cycle
+                to CCSDS packing using ecCodes grib_set.
+
+                1->      PATH    Input directory containing target GRIB2 files
+                2->      PATH    Output directory for converted files
+                3->      String  Cycle "yyyymmddhh" to target within input directory
+                <-       INT     Return code:
+                                   0  = Success (all matching files converted)
+                                   1  = Invalid cycle format
+                                   2  = Missing/unreadable dir or grib_set executable
+                                  -16 = No matching GRIB files found
+                                   8  = Conversion failure on one or more files
+
  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
 
 =head2 EXPORT
 
