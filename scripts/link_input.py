@@ -19,7 +19,7 @@ cycle_frequency = 6
 GEFS_VARIABLE_GROUPS = {
     'a': ('0p50', 'p5', range(0, 385, 6)),
     'b': ('0p50', 'p5', range(0, 385, 6)),
-    's': ('0p25', 'p25', range(0, 241, 6)),
+    'st': ('0p25', 'p25', range(0, 241, 6)),
 }
 
 def get_source_path(source_dir: str, time: datetime.datetime, grib_type: str, path_suffix: str) -> str:

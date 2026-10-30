@@ -8,4 +8,5 @@ time=${1}
 module use ../modulefiles > /dev/null 2>&1
 module load run.${MACHINE} > /dev/null 2>&1
 
+./combine_input.py ${time}
 ./link_input.py ${time}
