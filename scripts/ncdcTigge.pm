@@ -9,7 +9,7 @@ use File::Path;
 
 require Exporter;
 
-our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2([abs])(\.(?:0p50|0p25)\.)?f(\d{2,3})$);
+our $gefs_filepattern = qr(^ge[cp](\d\d)\.t(\d\d)z\.pgrb2(a|b|st)(\.(?:0p50|0p25)\.)?f(\d{2,3})$);
 
 our @ISA = qw(Exporter);
 
@@ -43,8 +43,8 @@ sub get_n_members($) {
 sub getQcNumPoints {
     my ($cycle, $grib_type) = @_;
 
-    # 0.25-degree grid for 's' files (1440 x 721)
-    if (defined $grib_type && $grib_type eq 's') {
+    # 0.25-degree grid for 'st' files (1440 x 721)
+    if (defined $grib_type && $grib_type eq 'st') {
         return 1038240;
     }
 
@@ -71,7 +71,7 @@ our $FCT_HOURS      = 384;		# Maximum forecast hours
 our %FCT_HOURS = (                      # Maximum forecast hours
     'a' => 384,
     'b' => 384,
-    's' => 240,
+    'st' => 240,
 );
 our $FCT_INC        = 6;		# Default forecast hour increment
 
@@ -81,11 +81,15 @@ our %aAnlRecCount;
 our %bAnlRecCount;
 our %aFctRecCount;
 our %bFctRecCount;
+our %stAnlRecCount;
+our %stFctRecCount;
 
 $aAnlRecCount{"0000000000"} = 45;
 $bAnlRecCount{"0000000000"} = 283;
 $aFctRecCount{"0000000000"} = 51;
 $bFctRecCount{"0000000000"} = 288;
+$stAnlRecCount{"0000000000"} = 35;
+$stFctRecCount{"0000000000"} = 47;
 
 $aAnlRecCount{"2010022312"} = 73;
 $aAnlRecCount{"2015120212"} = 69;
@@ -93,7 +97,10 @@ $bAnlRecCount{"2010022312"} = 258;
 $aFctRecCount{"2010022312"} = 79;
 $bFctRecCount{"2010022312"} = 262;
 
-
+$aAnlRecCount{"2020092312"} = 71;
+$aFctRecCount{"2020092312"} = 85;
+$bAnlRecCount{"2020092312"} = 473;
+$bFctRecCount{"2020092312"} = 505;
 
 	# FTP download variables
 our $ftpSrcSite		= "ftpprd.ncep.noaa.gov";		# Gens Download location
@@ -123,10 +130,12 @@ our $qcCenterCode 	= "kwbc";	# Accepted originating center code (NWS/NCEP)
 our $qcRecByteMin	= 128;		# Minimum byte size for ANY grib2 record
 our $qcGensProcessIdNum = 4;	# GRIB2 Generating process ID for GENS model
 
-our $qcGensAnlARecCount	= 45;
-our $qcGensFctARecCount	= 51;
-our $qcGensAnlBRecCount	= 283;
-our $qcGensFctBRecCount	= 288;
+our $qcGensAnlARecCount  = 71;
+our $qcGensFctARecCount  = 85;
+our $qcGensAnlBRecCount  = 473;
+our $qcGensFctBRecCount  = 505;
+our $qcGensAnlSTRecCount = 35;
+our $qcGensFctSTRecCount = 47;
 
 our %RequiredVariablesA = (
 	"Categorical Snow",			"0,1,95,,,,",
@@ -339,6 +348,8 @@ my $ArecCountAnl = $ncdcTigge::qcGensAnlARecCount;
 my $ArecCountFct = $ncdcTigge::qcGensFctARecCount;
 my $BrecCountAnl = $ncdcTigge::qcGensAnlBRecCount;
 my $BrecCountFct = $ncdcTigge::qcGensFctBRecCount;
+my $STrecCountAnl = $ncdcTigge::qcGensAnlSTRecCount;
+my $STrecCountFct = $ncdcTigge::qcGensFctSTRecCount;
 
 if( !(-e $inFile) )
     { return(1,"File related error","File \"$inFile\" does not exist!\n\n"); }
@@ -394,6 +405,16 @@ foreach my $k ( sort keys (%bFctRecCount ) )
 	if( $dtg ge $k )
 		{ $BrecCountFct = $ncdcTigge::bFctRecCount{$k}; }
 	}
+foreach my $k ( sort keys (%stAnlRecCount ) )
+        {
+            if( $dtg ge $k )
+                { $STrecCountAnl = $ncdcTigge::stAnlRecCount{$k}; }
+        }
+foreach my $k ( sort keys (%stFctRecCount ) )
+        {
+            if( $dtg ge $k )
+                { $STrecCountFct = $ncdcTigge::stFctRecCount{$k}; }
+        }
 
 my @varArray;       # Holds list of category,varNum / for all records
 my @rtn = (`$GRIB_LS -p $gribLsKeysString $inFile `);
@@ -545,7 +566,7 @@ if( $gensFileType eq "b" )
     if( ($priFct == 0) && ($numRec < ($BrecCountAnl-$LOOSENESS)) )
         {
         push(@messages,
-        "\n\tTEST QC Warning:  Expected $ArecCountAnl Records, found $numRec\n");
+        "\n\tTEST QC Warning:  Expected $BrecCountAnl Records, found $numRec\n");
         }
     if( ($priFct > 0) && ($numRec < ($BrecCountFct-$LOOSENESS)) )
         {
@@ -553,6 +574,22 @@ if( $gensFileType eq "b" )
         "\n\tTEST QC Warning:  Expected $BrecCountFct Records, found $numRec\n");
         }
     }
+
+    # Specific checks for ST files
+if( $gensFileType eq "st" )
+    {
+    if( ($priFct == 0) && ($numRec < ($STrecCountAnl-$LOOSENESS)) )
+        {
+        push(@messages,
+        "\n\tTEST QC Warning:  Expected $STrecCountAnl Records, found $numRec\n");
+        }
+    if( ($priFct > 0) && ($numRec < ($STrecCountFct-$LOOSENESS)) )
+        {
+        push(@messages,
+        "\n\tTEST QC Warning:  Expected $STrecCountFct Records, found $numRec\n");
+        }
+    }
+
 
 # print STDOUT "\n\nValid GENS\-$gensFileType file  [$inFileName]\n";
 # print STDOUT "Done:  Read $numLine lines, found $numRec Valid Records.\n\n";
@@ -679,7 +716,7 @@ for( my $m = 0; $m < get_n_members($cycle); $m++ ) {
     my $memStr = sprintf("%02d", $m); # Formats member as '00', '01', etc.
 
     # Loop through each GRIB type explicitly
-    foreach my $type ('a', 'b', 's') {
+    foreach my $type ('a', 'b', 'st') {
         my $key = "$memStr-$type";
 
         my $max_fct = $ncdcTigge::FCT_HOURS{$type} // $ncdcTigge::FCT_HOURS;
@@ -801,8 +838,8 @@ if( !(-r $ENV{'TIGGE_OUTPUT'}) )
 our %VARS_384 = map { $_ => 1 } qw(pt);
 
 my $memberCount   = get_n_members($cycle);
-my $stepsStandard = ($ncdcTigge::FCT_HOURS{'s'} / $ncdcTigge::FCT_INC) + 1; # 41 steps
-my $stepsPt       = ($ncdcTigge::FCT_HOURS{'a'} / $ncdcTigge::FCT_INC) + 1; # 65 steps
+my $stepsStandard = ($ncdcTigge::FCT_HOURS{'st'} / $ncdcTigge::FCT_INC) + 1; # 41 steps
+my $stepsPt       = ($ncdcTigge::FCT_HOURS{'a'} / $ncdcTigge::FCT_INC) + 1; # 65 steps 
 
 my $expectedCycleCount = 0;
 foreach my $varCode (@ncdcTigge::tiggeVarCodes) {
