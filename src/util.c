@@ -348,7 +348,7 @@ void generateInputFilename(int fileNumber, int yyyy, int mm, int dd, int hh, int
         strcpy(fileLetter, "b");
         strcpy(resString, "0p50");
     } else if (fileNumber == 2) {
-        strcpy(fileLetter, "s");
+        strcpy(fileLetter, "st");
         strcpy(resString, "0p25");
     } else {
         strcpy(fileLetter, "a"); // Fallback safety default
