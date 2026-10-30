@@ -83,8 +83,15 @@ def get_pgrb2b_pattern(time: datetime.datetime) -> str:
 		raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
 
 
-def get_pgrb2s_pattern(time: datetime.datetime) -> str:
+def get_pgrb2t_pattern(time: datetime.datetime) -> str:
     if time < datetime.datetime.now():
+        if time.hour in [0, 6, 12, 18]:
+            return time.strftime('/NCEPDEV/emc-ensemble/2year/emc.ens/eric.sinsky/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2tp25.tar')
+    else:
+        raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
+
+def get_pgrb2s_pattern(time: datetime.datetime) -> str:
+	if time < datetime.datetime.now():
         if time.hour in [0, 6, 12, 18]:
             return time.strftime('/NCEPPROD/5year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2sp25.tar')
     else:
@@ -111,6 +118,7 @@ def main():
 
 	subprocess.check_call(htar_command.format(file=get_pgrb2a_pattern(time)), shell=True)
 	subprocess.check_call(htar_command.format(file=get_pgrb2b_pattern(time)), shell=True)
+	subprocess.check_call(htar_command.format(file=get_pgrb2t_pattern(time)), shell=True)
 	subprocess.check_call(htar_command.format(file=get_pgrb2s_pattern(time)), shell=True)
 
 	print(f"{__file__} completed successfully")
