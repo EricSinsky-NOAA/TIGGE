@@ -92,10 +92,10 @@ def get_pgrb2t_pattern(time: datetime.datetime) -> str:
 
 def get_pgrb2s_pattern(time: datetime.datetime) -> str:
 	if time < datetime.datetime.now():
-        if time.hour in [0, 6, 12, 18]:
-            return time.strftime('/NCEPPROD/5year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2sp25.tar')
-    else:
-        raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
+	    if time.hour in [0, 6, 12, 18]:
+	        return time.strftime('/NCEPPROD/5year/hpssprod/runhistory/rh%Y/%Y%m/%Y%m%d/com_gefs_v12.3_gefs.%Y%m%d_%H.atmos_pgrb2sp25.tar')
+	else:
+	    raise Exception(time.strftime("Pattern not defined for this date: %Y%m%d_%H"))
 
 
 def main():
