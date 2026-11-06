@@ -2,7 +2,7 @@
 	<jobname><cyclestr>link_tigge_@Y@m@d_@H</cyclestr></jobname>
 	<account>&ACCOUNT;</account>
 	<join><cyclestr>&TIGGE_PTMP;/logs/@Y@m@d_@H/link_input.%J</cyclestr></join>
-	<walltime>00:10:00</walltime>
+	<walltime>00:20:00</walltime>
 	<queue>&SHARED_QUEUE;</queue>
 	<nodes>1:ppn=1:tpp=1</nodes>
 	<native>-R 'affinity[core(1)]'</native>
