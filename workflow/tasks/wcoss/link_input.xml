@@ -6,7 +6,7 @@
 	<queue>&SHARED_QUEUE;</queue>
 	<nodes>1:ppn=1:tpp=1</nodes>
 	<native>-R 'affinity[core(1)]'</native>
-	<native>-R 'rusage[mem=1024]'</native>
+        <memory>10000M</memory>
 
 	&ENV_VARS;
 	<command><cyclestr>../scripts/link_input.sh @Y@m@d@H</cyclestr></command>
