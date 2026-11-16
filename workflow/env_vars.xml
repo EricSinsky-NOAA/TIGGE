@@ -14,3 +14,7 @@
 	<name>GEFS_COM</name>
 	<value>&GEFS_COM;</value>
 </envar>
+<envar>
+        <name>TIGGE_TEST_MODE</name>
+        <value>&TIGGE_TEST_MODE;</value>
+</envar>

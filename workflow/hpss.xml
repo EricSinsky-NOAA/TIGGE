@@ -6,7 +6,7 @@
 	<!ENTITY TASK_THROTTLE "40">
 	<!ENTITY TIGGE_PTMP "/scratch4/NCEPDEV/global/role.glopara/TIGGE/tigge_tmp">
 	<!ENTITY GEFS_COM "&TIGGE_PTMP;/hpss">
-
+	<!ENTITY TIGGE_TEST_MODE "0">
 	<!ENTITY MACHINE "ursa">
 	<!ENTITY ACCOUNT "fv3-cpu">
 	<!ENTITY SCHEDULER "slurm">
